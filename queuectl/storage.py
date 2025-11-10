@@ -112,7 +112,7 @@ class Storage:
         with self._lock:
             conn = self._get_connection()
             try:
-                conn.execute("""
+                cursor = conn.execute("""
                     UPDATE jobs SET
                         command = ?, state = ?, attempts = ?, max_retries = ?,
                         priority = ?, run_at = ?, timeout = ?, output = ?,
@@ -124,7 +124,7 @@ class Storage:
                     job.error, job.next_retry_at, job.updated_at, job.id
                 ))
                 conn.commit()
-                return conn.rowcount > 0
+                return cursor.rowcount > 0
             finally:
                 conn.close()
     
@@ -227,9 +227,9 @@ class Storage:
         with self._lock:
             conn = self._get_connection()
             try:
-                conn.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+                cursor = conn.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
                 conn.commit()
-                return conn.rowcount > 0
+                return cursor.rowcount > 0
             finally:
                 conn.close()
     

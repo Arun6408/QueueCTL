@@ -6,7 +6,7 @@ A production-grade, CLI-based background job queue system with worker processes,
 
 ### Core Features
 - ✅ **Job Management**: Enqueue, list, and manage background jobs
-- ✅ **Worker System**: Multiple parallel workers with database-level locking
+- ✅ **Worker System**: Multiple parallel workers work to finish jobs.
 - ✅ **Automatic Retries**: Exponential backoff retry mechanism
 - ✅ **Dead Letter Queue**: Permanent storage for failed jobs
 - ✅ **Persistent Storage**: SQLite-based persistence across restarts
@@ -24,7 +24,7 @@ A production-grade, CLI-based background job queue system with worker processes,
 ## 🎬 Demo Video
 
 A working CLI demo video is available:
-- [Demo Video Link](https://drive.google.com/your-demo-video-link)
+- [Demo Video Link](https://drive.google.com/file/d/1vsxBWZhn-jskg7meiStokg0ajYPstYyE/view?usp=sharing)
 
 The demo showcases:
 - Enqueuing jobs
@@ -44,7 +44,7 @@ The demo showcases:
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/Arun6408/QueueCTL
 cd FLAM_proje
 ```
 

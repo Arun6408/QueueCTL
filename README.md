@@ -63,67 +63,25 @@ pip install -e .
 queuectl --version
 ```
 
-## 🚀 Quick Start
+## 🔄 Job Lifecycle
 
-### 1. Enqueue a Job
+1. **Enqueue**: Job is created with state `pending`
+2. **Pickup**: Worker picks up job, state changes to `processing`
+3. **Execution**: Command is executed
+4. **Success**: State changes to `completed`
+5. **Failure**: State changes to `failed`, retry scheduled with exponential backoff
+6. **Retry**: After backoff delay, job returns to `pending` for retry
+7. **DLQ**: After max retries, job moves to `dead` state (DLQ)
 
-```cmd
-queuectl enqueue "{""id"":""job1"",""command"":""echo Hello World""}"
-```
+### Job States
 
-#### Windows quoting guide (CMD, PowerShell, Bash)
-
-- **Git Bash / WSL / macOS/Linux (bash/zsh):**
-
-```bash
-queuectl enqueue '{"id":"job1","command":"sleep 2"}'
-```
-
-- **PowerShell:** (either of the following works)
-
-```powershell
-# Recommended
-queuectl enqueue '{"id":"job1","command":"timeout /t 2 >nul"}'
-
-# If you see “Invalid JSON format”, use explicit escaping:
-queuectl enqueue "{`"id`":`"job1`",`"command`":`"timeout /t 2 >nul`"}"
-
-# Or assign to a variable (most reliable):
-$json = '{"id":"job1","command":"timeout /t 2 >nul"}'
-queuectl enqueue $json
-```
-
-- **Windows CMD:**
-
-```cmd
-queuectl enqueue "{""id"":""job1"",""command"":""timeout /t 2 >nul""}"
-```
-
-### 2. Start Workers
-
-```cmd
-queuectl worker start --count 3
-```
-
-### 3. Check Status
-
-```cmd
-queuectl status
-```
-
-### 4. View Jobs
-
-```cmd
-queuectl list
-queuectl list --state pending
-```
-
-### 5. Monitor with Web Dashboard
-
-```cmd
-queuectl dashboard
-# Open http://localhost:8080 in your browser
-```
+| State | Description |
+|-------|-------------|
+| `pending` | Waiting to be picked up by a worker |
+| `processing` | Currently being executed |
+| `completed` | Successfully executed |
+| `failed` | Failed, but retryable |
+| `dead` | Permanently failed (moved to DLQ) |
 
 ## 💻 CLI Commands
 
@@ -177,35 +135,6 @@ Each job is defined as a JSON object with the following fields:
 }
 ```
 
-### Job States
-
-| State | Description |
-|-------|-------------|
-| `pending` | Waiting to be picked up by a worker |
-| `processing` | Currently being executed |
-| `completed` | Successfully executed |
-| `failed` | Failed, but retryable |
-| `dead` | Permanently failed (moved to DLQ) |
-
-## 🔄 Job Lifecycle
-
-1. **Enqueue**: Job is created with state `pending`
-2. **Pickup**: Worker picks up job, state changes to `processing`
-3. **Execution**: Command is executed
-4. **Success**: State changes to `completed`
-5. **Failure**: State changes to `failed`, retry scheduled with exponential backoff
-6. **Retry**: After backoff delay, job returns to `pending` for retry
-7. **DLQ**: After max retries, job moves to `dead` state (DLQ)
-
-## ⚙️ Configuration
-
-### Available Configuration Keys
-
-- `max-retries`: Maximum retry attempts (default: 3)
-- `backoff-base`: Base for exponential backoff calculation (default: 2)
-- `default-timeout`: Default job timeout in seconds (default: 300)
-- `worker-poll-interval`: Worker polling interval in seconds (default: 1)
-- `web-dashboard-port`: Web dashboard port (default: 8080)
 
 ### Example Configuration
 
@@ -286,6 +215,17 @@ queuectl enqueue "{""id"":""timeout-test"",""command"":""timeout /t 10 >nul"",""
 :: Job will timeout after 5 seconds
 queuectl worker start --count 1
 ```
+
+
+## ⚙️ Configuration
+
+### Available Configuration Keys
+
+- `max-retries`: Maximum retry attempts (default: 3)
+- `backoff-base`: Base for exponential backoff calculation (default: 2)
+- `default-timeout`: Default job timeout in seconds (default: 300)
+- `worker-poll-interval`: Worker polling interval in seconds (default: 1)
+- `web-dashboard-port`: Web dashboard port (default: 8080)
 
 ## 🏗️ Architecture
 

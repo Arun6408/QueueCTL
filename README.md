@@ -13,7 +13,7 @@ A production-grade, CLI-based background job queue system with worker processes,
 - ✅ **Graceful Shutdown**: Workers finish current jobs before stopping
 - ✅ **Configuration Management**: CLI-based configuration
 
-### Bonus Features
+### Extra Features
 - ✅ **Job Timeout**: Configurable timeout per job
 - ✅ **Priority Queues**: Higher priority jobs processed first
 - ✅ **Scheduled Jobs**: Execute jobs at specific times (`run_at`)
@@ -24,7 +24,7 @@ A production-grade, CLI-based background job queue system with worker processes,
 ## 🎬 Demo Video
 
 A working CLI demo video is available:
-- [Demo Video Link](https://drive.google.com/your-demo-video-link) *(Please update with your actual demo video link)*
+- [Demo Video Link](https://drive.google.com/your-demo-video-link)
 
 The demo showcases:
 - Enqueuing jobs
@@ -67,32 +67,60 @@ queuectl --version
 
 ### 1. Enqueue a Job
 
+```cmd
+queuectl enqueue "{""id"":""job1"",""command"":""echo Hello World""}"
+```
+
+#### Windows quoting guide (CMD, PowerShell, Bash)
+
+- **Git Bash / WSL / macOS/Linux (bash/zsh):**
+
 ```bash
-queuectl enqueue '{"id":"job1","command":"echo Hello World"}'
+queuectl enqueue '{"id":"job1","command":"sleep 2"}'
+```
+
+- **PowerShell:** (either of the following works)
+
+```powershell
+# Recommended
+queuectl enqueue '{"id":"job1","command":"timeout /t 2 >nul"}'
+
+# If you see “Invalid JSON format”, use explicit escaping:
+queuectl enqueue "{`"id`":`"job1`",`"command`":`"timeout /t 2 >nul`"}"
+
+# Or assign to a variable (most reliable):
+$json = '{"id":"job1","command":"timeout /t 2 >nul"}'
+queuectl enqueue $json
+```
+
+- **Windows CMD:**
+
+```cmd
+queuectl enqueue "{""id"":""job1"",""command"":""timeout /t 2 >nul""}"
 ```
 
 ### 2. Start Workers
 
-```bash
+```cmd
 queuectl worker start --count 3
 ```
 
 ### 3. Check Status
 
-```bash
+```cmd
 queuectl status
 ```
 
 ### 4. View Jobs
 
-```bash
+```cmd
 queuectl list
 queuectl list --state pending
 ```
 
 ### 5. Monitor with Web Dashboard
 
-```bash
+```cmd
 queuectl dashboard
 # Open http://localhost:8080 in your browser
 ```
@@ -103,7 +131,7 @@ queuectl dashboard
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `queuectl enqueue <json>` | Enqueue a new job | `queuectl enqueue '{"id":"job1","command":"sleep 2"}'` |
+| `queuectl enqueue <json>` | Enqueue a new job | `queuectl enqueue "{""id"":""job1"",""command"":""timeout /t 2 >nul""}"` |
 | `queuectl list [--state <state>]` | List jobs (optionally filtered) | `queuectl list --state pending` |
 | `queuectl status` | Show system status and statistics | `queuectl status` |
 
@@ -198,7 +226,7 @@ queuectl config show
 
 ```bash
 # Enqueue a simple job
-queuectl enqueue '{"id":"hello","command":"echo Hello World"}'
+queuectl enqueue "{""id"":""hello"",""command"":""echo Hello World""}"
 
 # Start a worker
 queuectl worker start --count 1
@@ -214,7 +242,7 @@ queuectl list --state completed
 
 ```bash
 # Enqueue a job that might fail
-queuectl enqueue '{"id":"retry-test","command":"exit 1","max_retries":3}'
+queuectl enqueue "{""id"":""retry-test"",""command"":""exit 1"",""max_retries"":3}"
 
 # Start workers
 queuectl worker start --count 2
@@ -230,10 +258,10 @@ queuectl dlq list
 
 ```bash
 # Enqueue high priority job
-queuectl enqueue '{"id":"urgent","command":"echo urgent","priority":10}'
+queuectl enqueue "{""id"":""urgent"",""command"":""echo urgent"",""priority"":10}"
 
 # Enqueue normal priority job
-queuectl enqueue '{"id":"normal","command":"echo normal","priority":0}'
+queuectl enqueue "{""id"":""normal"",""command"":""echo normal"",""priority"":0}"
 
 # High priority job will be processed first
 queuectl worker start --count 1
@@ -241,29 +269,21 @@ queuectl worker start --count 1
 
 ### Example 4: Scheduled Jobs
 
-```bash
-# Schedule job for future execution
-queuectl enqueue '{
-  "id":"scheduled",
-  "command":"echo scheduled",
-  "run_at":"2025-11-04T15:30:00Z"
-}'
+```cmd
+:: Schedule job for future execution
+queuectl enqueue "{""id"":""scheduled"",""command"":""echo scheduled"",""run_at"":""2025-11-04T15:30:00Z""}"
 
-# Job will be picked up only after the scheduled time
+:: Job will be picked up only after the scheduled time
 queuectl worker start --count 1
 ```
 
 ### Example 5: Job with Timeout
 
-```bash
-# Enqueue job with timeout
-queuectl enqueue '{
-  "id":"timeout-test",
-  "command":"sleep 10",
-  "timeout":5
-}'
+```cmd
+:: Enqueue job with timeout
+queuectl enqueue "{""id"":""timeout-test"",""command"":""timeout /t 10 >nul"",""timeout"":5}"
 
-# Job will timeout after 5 seconds
+:: Job will timeout after 5 seconds
 queuectl worker start --count 1
 ```
 
@@ -325,7 +345,7 @@ queuectl worker start --count 1
 
 ### Run Test Scenarios
 
-```bash
+```cmd
 python test_scenarios.py
 ```
 
@@ -341,22 +361,20 @@ This will run the following test scenarios:
 
 ```bash
 # Test 1: Basic functionality
-queuectl enqueue '{"id":"test1","command":"echo test"}'
+queuectl enqueue "{""id"":""test1"",""command"":""echo test""}"
 queuectl worker start --count 1
 # Wait a few seconds
 queuectl list --state completed
 
 # Test 2: Retry mechanism
-queuectl enqueue '{"id":"test2","command":"exit 1","max_retries":2}'
+queuectl enqueue "{""id"":""test2"",""command"":""exit 1"",""max_retries"":2}"
 queuectl worker start --count 1
 # Wait for retries
 queuectl list --state failed
 queuectl dlq list
 
 # Test 3: Multiple workers
-for i in {1..10}; do
-  queuectl enqueue "{\"id\":\"job$i\",\"command\":\"echo job$i\"}"
-done
+for /L %i in (1,1,10) do queuectl enqueue "{""id"":""job%i"",""command"":""echo job%i""}"
 queuectl worker start --count 3
 # Wait
 queuectl status
